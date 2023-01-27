@@ -82,8 +82,8 @@ preTagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+(-$suffix\.[0-9]+)$"
 # get latest tag that looks like a semver (with or without tag_prefix)
 case "$tag_context" in
     *repo*) 
-        tag="$(git for-each-ref --sort=-refs/tags/${tag_prefix}-* --format '%(refname:lstrip=2)' refs/tags/${tag_prefix}-* | grep -E "$tagFmt" | head -n 1)"
-        pre_tag="$(git for-each-ref --sort=-refs/tags/${tag_prefix}-* --format '%(refname:lstrip=2)' refs/tags/${tag_prefix}-* | grep -E "$preTagFmt" | head -n 1)"
+        tag="$(git for-each-ref --sort=-${tag_prefix} -k '%(refname)' --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
+        pre_tag="$(git for-each-ref --sort=-${tag_prefix} -k '%(refname)' --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
         ;;
     *branch*) 
         tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt" | head -n 1)"
