@@ -84,6 +84,8 @@ case "$tag_context" in
     *repo*) 
         tag="$(git for-each-ref --sort=-v:refname refs/tags/${tag_prefix}* --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
         pre_tag="$(git for-each-ref --sort=-v:refname refs/tags/${tag_prefix}* --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
+        echo $tag
+        echo $pre_tag
         ;;
     *branch*) 
         tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt" | head -n 1)"
