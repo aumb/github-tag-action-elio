@@ -29,6 +29,7 @@ echo "*** CONFIGURATION ***"
 echo -e "\tDEFAULT_BUMP: ${default_semvar_bump}"
 echo -e "\tDEFAULT_BRANCH: ${default_branch}"
 echo -e "\tTAG_PREFIX: ${tag_prefix}"
+echo -e "\tTAG_PREFIX: ${tag_prefix}elio${default_semvar_bump}"
 echo -e "\tRELEASE_BRANCHES: ${release_branches}"
 echo -e "\tCUSTOM_TAG: ${custom_tag}"
 echo -e "\tSOURCE: ${source}"
@@ -81,8 +82,8 @@ preTagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+(-$suffix\.[0-9]+)$"
 # get latest tag that looks like a semver (with or without tag_prefix)
 case "$tag_context" in
     *repo*) 
-        tag="$(git for-each-ref --sort=-'${tag_prefix}':refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
-        pre_tag="$(git for-each-ref --sort=-'${tag_prefix}':refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
+        tag="$(git for-each-ref --sort=-"${tag_prefix}":refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
+        pre_tag="$(git for-each-ref --sort=-"${tag_prefix}":refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
         ;;
     *branch*) 
         tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt" | head -n 1)"
