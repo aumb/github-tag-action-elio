@@ -5,7 +5,7 @@ set -o pipefail
 # config
 default_semvar_bump=${DEFAULT_BUMP:-minor}
 default_branch=${DEFAULT_BRANCH:-$GITHUB_BASE_REF} # get the default branch from github runner env vars
-with_v=${WITH_V:-false}
+tag_prefix=${TAG_PREFIX:-}
 release_branches=${RELEASE_BRANCHES:-master,main}
 custom_tag=${CUSTOM_TAG:-}
 source=${SOURCE:-.}
@@ -28,7 +28,7 @@ cd "${GITHUB_WORKSPACE}/${source}" || exit 1
 echo "*** CONFIGURATION ***"
 echo -e "\tDEFAULT_BUMP: ${default_semvar_bump}"
 echo -e "\tDEFAULT_BRANCH: ${default_branch}"
-echo -e "\tWITH_V: ${with_v}"
+echo -e "\tTAG_PREFIX: ${tag_prefix}"
 echo -e "\tRELEASE_BRANCHES: ${release_branches}"
 echo -e "\tCUSTOM_TAG: ${custom_tag}"
 echo -e "\tSOURCE: ${source}"
@@ -78,15 +78,15 @@ git fetch --tags
 tagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+$"
 preTagFmt="^v?[0-9]+\.[0-9]+\.[0-9]+(-$suffix\.[0-9]+)$"
 
-# get latest tag that looks like a semver (with or without v)
+# get latest tag that looks like a semver (with or without tag_prefix)
 case "$tag_context" in
     *repo*) 
-        tag="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
-        pre_tag="$(git for-each-ref --sort=-v:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
+        tag="$(git for-each-ref --sort=-$tag_prefix:refname --format '%(refname:lstrip=2)' | grep -E "$tagFmt" | head -n 1)"
+        pre_tag="$(git for-each-ref --sort=-$tag_prefix:refname --format '%(refname:lstrip=2)' | grep -E "$preTagFmt" | head -n 1)"
         ;;
     *branch*) 
-        tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt" | head -n 1)"
-        pre_tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$preTagFmt" | head -n 1)"
+        tag="$(git tag --list --merged HEAD --sort=-$tag_prefix:refname | grep -E "$tagFmt" | head -n 1)"
+        pre_tag="$(git tag --list --merged HEAD --sort=-$tag_prefix:refname | grep -E "$preTagFmt" | head -n 1)"
         ;;
     * ) echo "Unrecognised context"
         exit 1;;
@@ -95,17 +95,17 @@ esac
 # if there are none, start tags at INITIAL_VERSION
 if [ -z "$tag" ]
 then
-    if $with_v
+    if [ -n $tag_prefix ]
     then
-        tag="v$initial_version"
+        tag="$tag_prefix$initial_version"
     else
         tag="$initial_version"
     fi
     if [ -z "$pre_tag" ] && $pre_release
     then
-        if $with_v
+        if [ -n $tag_prefix ]
         then
-            pre_tag="v$initial_version"
+            pre_tag="$tag_prefix$initial_version"
         else
             pre_tag="$initial_version"
         fi
@@ -186,17 +186,17 @@ then
     # already a pre-release available, bump it
     if [[ "$pre_tag" =~ $new ]] && [[ "$pre_tag" =~ $suffix ]]
     then
-        if $with_v
+        if [ -n $tag_prefix ]
         then
-            new=v$(semver -i prerelease "${pre_tag}" --preid "${suffix}")
+            new=$tag_prefix$(semver -i prerelease "${pre_tag}" --preid "${suffix}")
         else
             new=$(semver -i prerelease "${pre_tag}" --preid "${suffix}")
         fi
         echo -e "Bumping ${suffix} pre-tag ${pre_tag}. New pre-tag ${new}"
     else
-        if $with_v
+        if [-n $tag_prefix ]
         then
-            new="v$new-$suffix.0"
+            new="$tag_prefix$new-$suffix.0"
         else
             new="$new-$suffix.0"
         fi
@@ -204,9 +204,9 @@ then
     fi
     part="pre-$part"
 else
-    if $with_v
+    if [ -n $tag_prefix ]
     then
-        new="v$new"
+        new="$tag_prefix$new"
     fi
     echo -e "Bumping tag ${tag} - New tag ${new}"
 fi
