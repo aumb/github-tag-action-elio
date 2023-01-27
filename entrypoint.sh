@@ -90,6 +90,8 @@ case "$tag_context" in
     *branch*) 
         tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$tagFmt" | head -n 1)"
         pre_tag="$(git tag --list --merged HEAD --sort=-v:refname | grep -E "$preTagFmt" | head -n 1)"
+        echo "eliohelo"
+        echo "honeakaltalbranch"
         ;;
     * ) echo "Unrecognised context"
         exit 1;;
